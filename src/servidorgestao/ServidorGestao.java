@@ -21,7 +21,7 @@ class AtendeCliente extends Thread
     @Override
     public void run()
     {
-        String request, timeMsg;
+        String request = "", timeMsg;
         Calendar calendar;  
         BufferedReader in;
         PrintWriter out;
@@ -30,7 +30,7 @@ class AtendeCliente extends Thread
             out = new PrintWriter(socketToClient.getOutputStream());
             in = new BufferedReader(new InputStreamReader(socketToClient.getInputStream()));
 
-            request = in.readLine();
+           while( !(request = in.readLine()).equalsIgnoreCase("fim") ){
 
             if(request == null){ //EOF
                 socketToClient.close();
@@ -53,11 +53,12 @@ class AtendeCliente extends Thread
                         calendar.get(GregorianCalendar.MINUTE)+":"+
                         calendar.get(GregorianCalendar.SECOND);
 
+                
                 //Envia a resposta ao cliente
                 out.println(timeMsg);
                 out.flush();
             }
-
+           }
         }catch(IOException e){
             System.out.println("<Thread_" + myId + "> Erro na comunicação como o cliente " + 
                     socketToClient.getInetAddress().getHostAddress() + ":" + 
@@ -92,6 +93,7 @@ public class ServidorGestao {
         
         System.out.println("Concurrent TCP Time Server iniciado no porto " + socket.getLocalPort() + " ...");
         
+        
         while(true){     
             toClientSocket = socket.accept();            
             new AtendeCliente(toClientSocket, threadId++).start();            
@@ -104,7 +106,10 @@ public class ServidorGestao {
             System.out.println("Sintaxe: java TcpTimeServer listeningPort");
             return;
         }
-                
+        // 
+        System.out.println("Endereço IP: "+InetAddress.getLocalHost().toString()); 
+        System.out.println("Porto TCP para os clientes: "+args[0]);
+        
         ServidorGestao tcpTimeServer = new ServidorGestao(Integer.parseInt(args[0]));
         tcpTimeServer.processRequests();            
     }
